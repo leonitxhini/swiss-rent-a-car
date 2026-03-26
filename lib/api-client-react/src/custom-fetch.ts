@@ -364,5 +364,17 @@ export async function customFetch<T = unknown>(
     throw new ApiError(response, errorData, requestInfo);
   }
 
+  // Treat HTML responses as errors — they're almost always a CDN/SPA fallback
+  // page (e.g. index.html returned with 200 by a catch-all rewrite rule),
+  // not a real JSON API response.
+  const ct = response.headers.get("content-type") ?? "";
+  if (ct.startsWith("text/html")) {
+    throw new ApiError(
+      response,
+      { message: "Expected JSON but server returned HTML (likely a CDN fallback page)" },
+      requestInfo,
+    );
+  }
+
   return (await parseSuccessBody(response, responseType, requestInfo)) as T;
 }
