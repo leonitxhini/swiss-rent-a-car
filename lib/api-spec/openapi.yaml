@@ -1,0 +1,309 @@
+openapi: 3.1.0
+info:
+  title: Api
+  version: 0.1.0
+  description: Swiss Rent A Car API
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: cars
+    description: Car fleet operations
+  - name: bookings
+    description: Booking operations
+  - name: contact
+    description: Contact operations
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+  /cars:
+    get:
+      operationId: getCars
+      tags: [cars]
+      summary: Get all available cars
+      parameters:
+        - name: category
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [economy, standard, suv, luxury, van]
+        - name: available
+          in: query
+          required: false
+          schema:
+            type: boolean
+      responses:
+        "200":
+          description: List of cars
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Car"
+  /cars/{id}:
+    get:
+      operationId: getCarById
+      tags: [cars]
+      summary: Get car by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Car details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Car"
+        "404":
+          description: Car not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /bookings:
+    post:
+      operationId: createBooking
+      tags: [bookings]
+      summary: Create a new booking
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateBookingRequest"
+      responses:
+        "201":
+          description: Booking created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Booking"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /contact:
+    post:
+      operationId: submitContact
+      tags: [contact]
+      summary: Submit a contact form
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ContactRequest"
+      responses:
+        "200":
+          description: Contact submitted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required:
+        - status
+    Car:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        brand:
+          type: string
+        model:
+          type: string
+        category:
+          type: string
+          enum: [economy, standard, suv, luxury, van]
+        pricePerDay:
+          type: number
+        seats:
+          type: integer
+        transmission:
+          type: string
+          enum: [automatic, manual]
+        fuelType:
+          type: string
+          enum: [petrol, diesel, hybrid, electric]
+        imageUrl:
+          type: string
+        features:
+          type: array
+          items:
+            type: string
+        available:
+          type: boolean
+        rating:
+          type: number
+        reviewCount:
+          type: integer
+      required:
+        - id
+        - name
+        - brand
+        - model
+        - category
+        - pricePerDay
+        - seats
+        - transmission
+        - fuelType
+        - imageUrl
+        - features
+        - available
+        - rating
+        - reviewCount
+    CreateBookingRequest:
+      type: object
+      properties:
+        carId:
+          type: integer
+        pickupDate:
+          type: string
+          format: date-time
+        returnDate:
+          type: string
+          format: date-time
+        pickupLocation:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+          format: email
+        phone:
+          type: string
+        driverAge:
+          type: integer
+      required:
+        - carId
+        - pickupDate
+        - returnDate
+        - pickupLocation
+        - firstName
+        - lastName
+        - email
+        - phone
+        - driverAge
+    Booking:
+      type: object
+      properties:
+        id:
+          type: integer
+        carId:
+          type: integer
+        pickupDate:
+          type: string
+          format: date-time
+        returnDate:
+          type: string
+          format: date-time
+        pickupLocation:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        driverAge:
+          type: integer
+        totalPrice:
+          type: number
+        status:
+          type: string
+          enum: [pending, confirmed, cancelled]
+        confirmationCode:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - carId
+        - pickupDate
+        - returnDate
+        - pickupLocation
+        - firstName
+        - lastName
+        - email
+        - phone
+        - driverAge
+        - totalPrice
+        - status
+        - confirmationCode
+        - createdAt
+    ContactRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        phone:
+          type: string
+        subject:
+          type: string
+        message:
+          type: string
+      required:
+        - name
+        - email
+        - message
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+      required:
+        - success
+        - message
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+        details:
+          type: string
+      required:
+        - error
